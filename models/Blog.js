@@ -8,11 +8,6 @@ const blogPostSchema = new Schema(
       trim: true,
       maxLength: 150,
     },
-    author: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     content: {
       type: String,
       required: true,
@@ -24,7 +19,7 @@ const blogPostSchema = new Schema(
       },
     ],
     thumbnailUrl: {
-      type: String, // URL to the thumbnail image for the post
+      type: String,
     },
     views: {
       type: Number,

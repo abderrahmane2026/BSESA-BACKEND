@@ -26,7 +26,7 @@ UserRouter.put(
   UpdateAvatar
 );
 
-UserRouter.post("/create", CreateUser);
+UserRouter.post("/userCreate", CreateUser);
 UserRouter.post("/activation", ActivateUser);
 UserRouter.post("/login", Login);
 UserRouter.get("/refresh", RefreshToken);

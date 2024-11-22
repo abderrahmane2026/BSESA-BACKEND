@@ -29,7 +29,8 @@ import ResearchRouter from "./routes/ResearchRouter.js";
 
 app.use(
   cors({
-    origin: "*",
+    origin: "*", // Specify the exact frontend origin
+    credentials: true, // Allow credentials (cookies, HTTP authentication)
   })
 );
 
@@ -63,7 +64,7 @@ const MONGO_URL =
   process.env.MONGO_URL || "mongodb://localhost:27017/mydatabase";
 
 mongoose
-  .connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(MONGO_URL)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 

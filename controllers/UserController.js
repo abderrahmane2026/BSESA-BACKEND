@@ -25,7 +25,7 @@ export const CreateUser = async (req, res) => {
   try {
     const userExist = await User.findOne({ email });
     if (userExist) {
-      throw new Error(`User ${email} already exists`);
+      return res.status(500).json({ message: `User already exist` });
     }
     const { token, activation } = CreateToken({
       firstName,
@@ -54,7 +54,7 @@ export const CreateUser = async (req, res) => {
       html,
     });
 
-    res.cookie("jwt", token, { maxAge: 3600 * 24 });
+    res.cookie("jwt", token, { maxAge: 3600 });
     res.status(200).json({ token, activation });
   } catch (err) {
     console.log(err);
@@ -104,7 +104,7 @@ export const Login = async (req, res) => {
       return res.status(401).json({ message: "Email Dosen't exist" });
     }
     if (!(await user.comparePassword(password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Password incorrect" });
     }
 
     const { accessToken, refreshToken } = generateTokens(user);
@@ -124,7 +124,7 @@ export const Login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ message: "Login successful" });
+    res.status(200).json({ message: "Login successful", user });
   } catch (error) {
     res.status(error.status || 500).json({ err: error.message });
   }

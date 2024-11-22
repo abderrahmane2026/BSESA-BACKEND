@@ -9,19 +9,19 @@ import { authenticateToken, authorizeRoles } from "../middleware/Auth.js";
 const CategoryRouter = Router();
 
 CategoryRouter.post(
-  "/category",
+  "/categories",
   authenticateToken,
   authorizeRoles(["admin"]),
   AddCategory
 );
 
 CategoryRouter.delete(
-  "/category/:id",
+  "/categories/:id",
   authenticateToken,
   authorizeRoles(["admin"]),
   DeleteCategory
 );
 
-CategoryRouter.get("/categorys", GetCategorys);
+CategoryRouter.get("/categories", GetCategorys);
 
 export default CategoryRouter;

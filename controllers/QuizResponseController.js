@@ -8,6 +8,9 @@ import fs from "fs";
 import path from "path";
 import { PassThrough } from "stream";
 import PDFDocument from "pdfkit";
+import uploadToSpaces from "../utitlitis/awsDigitalOcean.js";
+
+const rootDir = path.resolve();
 
 export const CreateQuiz = async (req, res) => {
   try {
@@ -22,43 +25,7 @@ export const CreateQuiz = async (req, res) => {
   }
 };
 
-// async function generateCertificate(user) {
-//   const pdfDoc = await PDFDocument.create();
-//   const page = pdfDoc.addPage([600, 400]);
-
-//   page.drawText(`Certificate of Completion`, { x: 200, y: 300, size: 24 });
-//   page.drawText(`This is to certify that ${user.firstName} ${user.lastName}`, {
-//     x: 100,
-//     y: 250,
-//     size: 18,
-//   });
-//   page.drawText(`has successfully completed the course.`, {
-//     x: 100,
-//     y: 220,
-//     size: 18,
-//   });
-
-//   const pdfBytes = await pdfDoc.save();
-
-//   const __filename = new URL(import.meta.url).pathname;
-//   const __dirname = path.dirname(__filename);
-
-//   const rootDir = path.resolve(__dirname, "..");
-//   const dir = path.join(rootDir, "certificates");
-
-//   if (!fs.existsSync(dir)) {
-//     fs.mkdirSync(dir, { recursive: true });
-//     console.log("Certificates directory created:", dir);
-//   }
-
-//   const pdfFileName = `${user._id}-certificate.pdf`;
-//   fs.writeFileSync(path.join(dir, pdfFileName), pdfBytes);
-
-//   return { pdfBytes, pathPdf: path.join(dir, pdfFileName) };
-// }
-
-export const generateCertificate = async (user, courseTitle) => {
-  // Create the PDF document
+const generateCertificate = async (user, courseTitle) => {
   const doc = new PDFDocument({
     layout: "landscape",
     size: "A4",
@@ -68,59 +35,125 @@ export const generateCertificate = async (user, courseTitle) => {
   const date = new Date();
   const pdfFileName = `${user._id}_${date.getTime()}.pdf`;
 
-  // Define the root directory and certificates folder in the root
-  const rootDir = path.resolve();
-  const dir = path.join(rootDir, "certificates");
+  // Create a stream to hold the PDF data in memory
+  const pdfChunks = [];
+  const stream = doc.pipe(new PassThrough());
 
-  // Ensure the certificates directory exists
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-    console.log("Certificates directory created:", dir);
-  }
+  // Handle streaming data
+  stream.on("data", (chunk) => {
+    if (chunk instanceof Buffer) {
+      pdfChunks.push(chunk); // Only push Buffer instances directly to our buffer array
+    } else if (chunk instanceof ArrayBuffer) {
+      pdfChunks.push(Buffer.from(chunk)); // Convert ArrayBuffer to Buffer if necessary
+    } else {
+      console.error("Unexpected chunk type:", chunk.constructor.name);
+    }
+  });
 
-  const filePath = path.join(dir, pdfFileName);
+  // Add background image and text content before closing the document
+  const imagePath = path.join(rootDir, "certifivateTemplate", "CanvaGen.png");
 
-  // Pipe the PDF to the file in the root certificates folder
-  doc.pipe(fs.createWriteStream(filePath));
-
-  // Add background image and text
-  doc.image(path.join(rootDir, "certifivateTemplate", "CanvaGen.png"), 0, 0, {
+  // Add background image to the document
+  doc.image(imagePath, 0, 0, {
     width: 842,
   });
-  doc
-    .font(
-      path.join(rootDir, "fonts", "OpenSans-VariableFont_wdth,wght.ttf"),
-      400
-    )
-    .fontSize(50)
-    .text(courseTitle, 50, 250, { align: "center" });
 
+  // Add course title
+  const pageWidth = doc.page.width; // A4 landscape width
+  const pageHeight = 595; // A4 landscape height
+  doc
+    .font(path.join(rootDir, "fonts", "OpenSans-VariableFont_wdth,wght.ttf"))
+    .fontSize(50)
+    .text(
+      courseTitle.toLowerCase(),
+      pageWidth / 2 - (doc.fontSize(50).widthOfString(courseTitle) + 100) / 2,
+      140,
+      {
+        align: "center",
+        width: doc.fontSize(50).widthOfString(courseTitle) + 100,
+      }
+    );
+
+  // Format the current date
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   }).format(date);
+
+  // Add user's name and date
+  doc
+    .fontSize(40)
+    .text(
+      `${user.firstName} ${user.lastName}`,
+      pageWidth / 2 -
+        (doc.fontSize(40).widthOfString(`${user.firstName} ${user.lastName}`) +
+          100) /
+          2,
+      275,
+      {
+        align: "center",
+        width:
+          doc.fontSize(40).widthOfString(`${user.firstName} ${user.lastName}`) +
+          100,
+      }
+    );
+
   doc
     .fontSize(20)
-    .text(`${user.firstName} ${user.lastName}`, -245, 315, { align: "center" });
-  doc.fontSize(20).text(formattedDate, 400, 315, { align: "center" });
-
+    .text(
+      formattedDate,
+      pageWidth / 2 - (doc.fontSize(20).widthOfString(formattedDate) + 100) / 2,
+      340,
+      {
+        align: "center",
+        width: doc.fontSize(20).widthOfString(formattedDate) + 100,
+      }
+    );
   doc
-    .font(path.join(rootDir, "fonts", "Creattion Demo.otf"), 6)
+    .fontSize(10)
+    .fillColor("white")
+    .text(pdfFileName.split(".")[0], 0, pageHeight - 40, {
+      align: "center",
+      width: doc.fontSize(10).widthOfString(pdfFileName.split(".")[0]) + 20,
+      height: 70,
+    });
+
+  // Add another text, e.g. "BSESA"
+  doc
+    .font(path.join(rootDir, "fonts", "Creattion Demo.otf"))
     .fontSize(50)
-    .text("BSESA", 50, 360, { align: "center" });
+    .fillColor("black")
+    .text(
+      "BSESA",
+      pageWidth / 2 - (doc.fontSize(50).widthOfString("BSESA") + 100) / 2,
+      425,
+      {
+        align: "center",
+        width: doc.fontSize(50).widthOfString("BSESA") + 80,
+        height: doc.fontSize(50).heightOfString("BSESA"),
+      }
+    );
 
-  const pdfChunks = [];
-  const stream = doc.pipe(new PassThrough());
-
-  stream.on("data", (chunk) => pdfChunks.push(chunk));
+  // Ensure the PDF is fully written before ending the document
   doc.end();
 
+  // Wait until the PDF generation is complete and buffer it
   await new Promise((resolve) => stream.on("end", resolve));
 
-  const pdfBytes = Buffer.concat(pdfChunks);
+  // Ensure chunks are concatenated into a Buffer
+  const pdfBuffer = Buffer.concat(pdfChunks);
 
-  return { pdfBytes, pathPdf: filePath };
+  const uploadResult = await uploadToSpaces(
+    {
+      buffer: pdfBuffer,
+      originalname: pdfFileName,
+      mimetype: "application/pdf",
+    },
+    "/Certificates"
+  );
+
+  return { pdfUrl: uploadResult };
 };
 
 export const saveQuizResponse = async (req, res) => {
@@ -155,15 +188,14 @@ export const saveQuizResponse = async (req, res) => {
         await QuizResponse.deleteOne({ _id: existingResponse._id });
       }
     }
-    let certificate = null;
+
+    let certificateUrl = null;
     if (passed) {
       const user = await User.findById(userId);
       const course = await Course.findById(courseId);
-      const { pathPdf, pdfBytes } = await generateCertificate(
-        user,
-        course.title
-      );
-      certificate = pathPdf;
+      const { pdfUrl } = await generateCertificate(user, course.title);
+      certificateUrl = pdfUrl;
+
       await transporter.sendMail({
         from: `Elearning <${process.env.SMTP_MAIL}>`,
         to: user.email,
@@ -172,7 +204,7 @@ export const saveQuizResponse = async (req, res) => {
         attachments: [
           {
             filename: `${user.firstName}-certificate.pdf`,
-            content: pdfBytes,
+            path: certificateUrl, // Send the URL of the uploaded certificate
           },
         ],
       });
@@ -185,7 +217,7 @@ export const saveQuizResponse = async (req, res) => {
       responses,
       score,
       passed,
-      certificate,
+      certificate: certificateUrl,
     });
 
     await quizResponse.save();
@@ -194,13 +226,13 @@ export const saveQuizResponse = async (req, res) => {
       return res.status(200).json({
         score,
         passed,
-        message: "Please Chech Your Email, We Will Send You Do Certificate",
+        message: "Please check your email for the certificate.",
       });
     }
     return res.status(200).json({
       score,
       passed,
-      message: "You Fail , Please Try Again Tomorrow",
+      message: "You failed, please try again tomorrow.",
     });
   } catch (error) {
     console.error("Error submitting quiz:", error);

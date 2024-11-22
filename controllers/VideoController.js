@@ -3,6 +3,7 @@ import uploadToSpaces from "../utitlitis/awsDigitalOcean.js";
 
 export const CreateVideo = async (req, res) => {
   try {
+    console.log("Creating video");
     const { title, description, links } = req.body;
     const videoFile =
       req.files && req.files["video"] ? req.files["video"][0] : null;
@@ -18,25 +19,25 @@ export const CreateVideo = async (req, res) => {
     }
 
     // Upload the files to DigitalOcean Spaces
+    console.log("UlpoadDing files thumbnails");
+    console.log(thumbnailFile);
     const thumbnailUrl = await uploadToSpaces(
       thumbnailFile,
       "/VideoThumbnails",
-      true // Assuming you want this to be public or private based on your needs
+      true
     );
-    const videoUrl = await uploadToSpaces(videoFile, "/Videos", true); // Assuming private by default
+    console.log("UlpoadDing files Videos");
+    const videoUrl = await uploadToSpaces(videoFile, "/Videos", true);
 
-    // Create Video in the Database
     const newVideo = new Video({
       title,
       description,
-      url: videoUrl, // Use the uploaded video URL from DigitalOcean
-      thumbnail: thumbnailUrl, // Use the uploaded thumbnail URL
-      pdf,
-      links: links ? JSON.parse(links) : [], // Handle links as an array
+      url: videoUrl,
+      thumbnail: thumbnailUrl,
+      links: links ? JSON.parse(links) : [],
     });
 
-    await newVideo.save(); // Save video document to MongoDB
-
+    await newVideo.save();
     res.status(201).json({
       message: "Upload successful and video saved",
       video: newVideo,

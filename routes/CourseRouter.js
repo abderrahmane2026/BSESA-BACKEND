@@ -17,8 +17,8 @@ const CourseRouter = Router();
 
 CourseRouter.post(
   "/course/create",
-  authenticateToken,
-  authorizeRoles(["admin", "coach"]),
+  // authenticateToken,
+  // authorizeRoles(["admin", "coach"]),
   upload.single("file"),
   CreateCourse
 );

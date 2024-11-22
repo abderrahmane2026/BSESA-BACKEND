@@ -14,6 +14,13 @@ export const createResearch = async (req, res) => {
       relatedResearches,
     } = req.body;
 
+    const thumbnailFile =
+      req.files && req.files["thumbnail"] ? req.files["thumbnail"][0] : null;
+
+    if (!thumbnailFile) {
+      return res.status(404).json({ error: "Research Must have a Thumbnail" });
+    }
+    const thumbnail = await uploadToSpaces(thumbnailFile, "/ResearchThumbnail");
     const newResearch = new Research({
       title,
       abstract,
@@ -22,17 +29,15 @@ export const createResearch = async (req, res) => {
       references,
       category,
       relatedResearches,
+      thumbnail,
     });
 
-    if (req.file) {
-      newResearch.thumbnail = await uploadToSpaces(
-        req.file,
-        "/ResearchThumbnail"
-      );
+    const pdfFile = req.files && req.files["pdf"] ? req.files["pdf"][0] : null;
+
+    if (pdfFile) {
+      newResearch.file = await uploadToSpaces(pdfFile, "/ResearchPdf");
     }
-
     await newResearch.save();
-
     res.status(201).json({
       message: "Research created successfully",
       research: newResearch,

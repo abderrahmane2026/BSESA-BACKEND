@@ -5,22 +5,22 @@ import uploadToSpaces from "../utitlitis/awsDigitalOcean.js";
 export const CreateCourse = async (req, res) => {
   try {
     console.log("Starting CreateCourse");
-    const { title, description, price, coach, categorys, publicshed } =
-      req.body;
+    const { title, description, price, categorys, publicshed } = req.body;
     const file = req.file;
 
     if (!file) {
       return res.status(400).json({ message: "No Image file uploaded" });
     }
+
+    const categoryIds = JSON.parse(categorys);
     const thumbnail = await uploadToSpaces(file, "/CourseImage");
     const NewCourse = new Course({
       title,
       description,
       thumbnail,
       price,
-      coach,
-      categorys,
-      publicshed,
+      categorys: categoryIds,
+      published,
     });
 
     await NewCourse.save();

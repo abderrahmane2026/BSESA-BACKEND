@@ -11,8 +11,10 @@ const VideoRouter = Router();
 
 VideoRouter.post(
   "/video/create",
-  upload.single("thumbnail"),
-  uploadLargeFile.single("video"),
+  uploadLargeFile.fields([
+    { name: "video", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
   CreateVideo
 );
 VideoRouter.get("/videos", GetAllVideos);

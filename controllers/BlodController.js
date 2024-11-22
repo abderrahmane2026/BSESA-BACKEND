@@ -12,7 +12,6 @@ export const createBlogPost = async (req, res) => {
     const thumbnailUrl = await uploadToSpaces(file, "/BlogThumbnails");
     const newPost = new Blog({
       title,
-      author: req.user.id,
       content,
       categories,
       thumbnailUrl,

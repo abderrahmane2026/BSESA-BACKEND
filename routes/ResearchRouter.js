@@ -7,7 +7,7 @@ import {
   deleteResearch,
 } from "../controllers/ReserachController.js";
 import { authenticateToken, authorizeRoles } from "../middleware/Auth.js";
-import { upload } from "../middleware/multerConfig.js";
+import { upload, uploadPdfThumbnail } from "../middleware/multerConfig.js";
 
 const ResearchRouter = Router();
 
@@ -22,7 +22,7 @@ ResearchRouter.post(
   "/",
   authenticateToken,
   authorizeRoles(["admin"]),
-  upload.single("file"),
+  uploadPdfThumbnail,
   createResearch
 );
 

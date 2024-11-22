@@ -9,9 +9,8 @@ const memoryStorage = multer.memoryStorage();
 // Export a single file upload middleware
 export const upload = multer({ storage: memoryStorage }); // For single file uploads
 
-// Export a multiple file upload middleware for video and thumbnail
-export const uploadVideoThumbnail = multer({ storage: memoryStorage }).fields([
-  { name: "video", maxCount: 1 }, // Allow one video file
+export const uploadPdfThumbnail = multer({ storage: memoryStorage }).fields([
+  { name: "pdf", maxCount: 1 }, // Allow one video file
   { name: "thumbnail", maxCount: 1 }, // Allow one thumbnail file
 ]);
 
