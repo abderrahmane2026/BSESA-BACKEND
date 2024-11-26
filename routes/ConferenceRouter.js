@@ -14,13 +14,13 @@ const ConferenceRouter = Router();
 
 ConferenceRouter.post(
   "/conference/create",
-  authenticateToken,
-  authorizeRoles(["admin"]),
-  upload.single("file"),
+  //authenticateToken,
+  // authorizeRoles(["admin"]),
+   upload.single("file"),
   CreateConference
 );
 ConferenceRouter.get("/conferences", GetConferences);
-ConferenceRouter.get("/conference", GetConference);
+ConferenceRouter.get("/conference/:id", GetConference);
 ConferenceRouter.put(
   "/conference/:id",
   authenticateToken,

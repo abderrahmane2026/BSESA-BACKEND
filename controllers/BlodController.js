@@ -31,7 +31,7 @@ export const getAllBlogPosts = async (req, res) => {
     const filter = category ? { categories: category } : {};
 
     const blogs = await Blog.find(filter)
-      .populate("author", "firstName lastName image")
+      // .populate("author", "firstName lastName image")
       .populate("categories", "name")
       .limit(limit * 1)
       .skip((page - 1) * limit)
@@ -47,7 +47,7 @@ export const getBlogPostById = async (req, res) => {
   try {
     const { id } = req.params;
     const post = await Blog.findById(id)
-      .populate("author", "firstName lastName image")
+      // .populate("author", "firstName lastName image")
       .populate("categories", "name")
       .populate({
         path: "comments",

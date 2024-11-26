@@ -5,7 +5,7 @@ import uploadToSpaces from "../utitlitis/awsDigitalOcean.js";
 export const CreateCourse = async (req, res) => {
   try {
     console.log("Starting CreateCourse");
-    const { title, description, price, categorys, publicshed } = req.body;
+    const { title, description, price, categorys, published } = req.body;
     const file = req.file;
 
     if (!file) {

@@ -1,8 +1,12 @@
 import multer from "multer";
+import { fileURLToPath } from 'url';
 import path from "path";
 import fs from "fs";
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
 // Memory storage for small files
 const memoryStorage = multer.memoryStorage();
 
@@ -17,6 +21,7 @@ export const uploadPdfThumbnail = multer({ storage: memoryStorage }).fields([
 // Disk storage for large files
 const diskStorage = multer.diskStorage({
   destination: (req, file, cb) => {
+    console.log(__dirname);
     const uploadDir = path.resolve(__dirname, "uploads"); // Absolute path for the uploads folder
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true }); // Create the directory if it doesn't exist

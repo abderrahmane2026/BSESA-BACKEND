@@ -31,6 +31,7 @@ const conferenceSchema = new Schema(
     categories: [
       {
         type: String,
+        default: [],
       },
     ],
     speakers: [

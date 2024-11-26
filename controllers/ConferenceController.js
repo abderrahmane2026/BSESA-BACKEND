@@ -3,8 +3,10 @@ import uploadToSpaces from "../utitlitis/awsDigitalOcean.js";
 
 export const CreateConference = async (req, res) => {
   try {
-    const { name, description, location, date, categories, speakers } =
-      req.body;
+    const { name, description, location, date, categories, speakers } = req.body;
+
+    // إذا كان speakers نصًا، قم بتحليله إلى JSON
+    const parsedSpeakers = typeof speakers === "string" ? JSON.parse(speakers) : speakers;
 
     if (!req.file)
       return res
@@ -12,20 +14,22 @@ export const CreateConference = async (req, res) => {
         .json({ error: "The Conference Image is required" });
 
     const image = await uploadToSpaces(req.file, "/Conference");
+
     const conference = await Conference.create({
       name,
       description,
       location,
       date,
       categories,
-      speakers,
+      speakers: parsedSpeakers, // تمرير قائمة الكائنات
       image,
     });
-    if (!conference)
-      res.status(400).json({ message: "Conference Not Created" });
-    res
-      .status(200)
-      .json({ message: "Conference Created Successefully", conference });
+
+    if (!conference) {
+      return res.status(400).json({ message: "Conference Not Created" });
+    }
+
+    res.status(200).json({ message: "Conference Created Successfully", conference });
   } catch (error) {
     res.status(error.status || 500).json({ err: error.message });
   }

@@ -29,7 +29,7 @@ import ResearchRouter from "./routes/ResearchRouter.js";
 
 app.use(
   cors({
-    origin: "*", // Specify the exact frontend origin
+    origin:  process.env.ORIGIN, // Specify the exact frontend origin
     credentials: true, // Allow credentials (cookies, HTTP authentication)
   })
 );
