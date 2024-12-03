@@ -54,7 +54,13 @@ export const CreateUser = async (req, res) => {
       html,
     });
 
-    res.cookie("jwt", token, { maxAge: 3600 });
+    res.cookie("jwt", token, {
+      httpOnly:true,
+      sameSite: "None",
+      secure: process.env.NODE_ENV=== "production",
+
+
+       maxAge: 3600 });
     res.status(200).json({ token, activation });
   } catch (err) {
     console.log(err);
@@ -114,12 +120,14 @@ export const Login = async (req, res) => {
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
+            sameSite: "None",
       secure: process.env.NODE_ENV === "production",
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
+      sameSite: "None",
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -154,12 +162,14 @@ export const RefreshToken = (req, res) => {
         await user.save();
         res.cookie("accessToken", newTokens.accessToken, {
           httpOnly: true,
+          sameSite: "None",
           secure: process.env.NODE_ENV === "production",
           maxAge: 15 * 60 * 1000,
         });
 
         res.cookie("refreshToken", newTokens.refreshToken, {
           httpOnly: true,
+          sameSite: "None",
           secure: process.env.NODE_ENV === "production",
           maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -184,6 +194,8 @@ export const LogOut = async (req, res) => {
 
     res.cookie("accessToken", "", {
       httpOnly: true,
+
+      sameSite: "None",
       secure: process.env.NODE_ENV === "production",
       maxAge: -1,
       expires: new Date(0),
@@ -191,6 +203,7 @@ export const LogOut = async (req, res) => {
 
     res.cookie("refreshToken", "", {
       httpOnly: true,
+      sameSite: "None",
       secure: process.env.NODE_ENV === "production",
       maxAge: -1,
       expires: new Date(0),
