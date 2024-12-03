@@ -29,7 +29,11 @@ import ResearchRouter from "./routes/ResearchRouter.js";
 
 app.use(
   cors({
-    origin:  process.env.ORIGIN, // Specify the exact frontend origin
+     origin: [
+      "http://localhost:3000", // للمطورين أثناء العمل على البيئة المحلية
+      "https://bsesa-up.onrender.com" ,// لبيئة الإنتاج على Render
+  "http://localhost:3001",
+    ], // Specify the exact frontend origin
     credentials: true, // Allow credentials (cookies, HTTP authentication)
   })
 );
